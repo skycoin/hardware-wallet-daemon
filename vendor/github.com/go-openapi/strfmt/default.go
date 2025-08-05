@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -57,24 +58,35 @@ const (
 	//   - long top-level domain names (e.g. example.london) are permitted
 	//   - symbol unicode points are permitted (e.g. emoji) (not for top-level domain)
 	HostnamePattern = `^([a-zA-Z0-9\p{S}\p{L}]((-?[a-zA-Z0-9\p{S}\p{L}]{0,62})?)|([a-zA-Z0-9\p{S}\p{L}](([a-zA-Z0-9-\p{S}\p{L}]{0,61}[a-zA-Z0-9\p{S}\p{L}])?)(\.)){1,}([a-zA-Z\p{L}]){2,63})$`
-	// UUIDPattern Regex for UUID that allows uppercase
-	UUIDPattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`
-	// UUID3Pattern Regex for UUID3 that allows uppercase
-	UUID3Pattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?3[0-9a-f]{3}-?[0-9a-f]{4}-?[0-9a-f]{12}$`
-	// UUID4Pattern Regex for UUID4 that allows uppercase
-	UUID4Pattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?4[0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}$`
-	// UUID5Pattern Regex for UUID5 that allows uppercase
-	UUID5Pattern = `(?i)^[0-9a-f]{8}-?[0-9a-f]{4}-?5[0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}$`
+
 	// json null type
 	jsonNull = "null"
 )
 
+const (
+	// UUIDPattern Regex for UUID that allows uppercase
+	//
+	// Deprecated: strfmt no longer uses regular expressions to validate UUIDs.
+	UUIDPattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$)|(^[0-9a-f]{32}$)`
+
+	// UUID3Pattern Regex for UUID3 that allows uppercase
+	//
+	// Deprecated: strfmt no longer uses regular expressions to validate UUIDs.
+	UUID3Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$)|(^[0-9a-f]{12}3[0-9a-f]{3}?[0-9a-f]{16}$)`
+
+	// UUID4Pattern Regex for UUID4 that allows uppercase
+	//
+	// Deprecated: strfmt no longer uses regular expressions to validate UUIDs.
+	UUID4Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$)|(^[0-9a-f]{12}4[0-9a-f]{3}[89ab][0-9a-f]{15}$)`
+
+	// UUID5Pattern Regex for UUID5 that allows uppercase
+	//
+	// Deprecated: strfmt no longer uses regular expressions to validate UUIDs.
+	UUID5Pattern = `(?i)(^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$)|(^[0-9a-f]{12}5[0-9a-f]{3}[89ab][0-9a-f]{15}$)`
+)
+
 var (
 	rxHostname = regexp.MustCompile(HostnamePattern)
-	rxUUID     = regexp.MustCompile(UUIDPattern)
-	rxUUID3    = regexp.MustCompile(UUID3Pattern)
-	rxUUID4    = regexp.MustCompile(UUID4Pattern)
-	rxUUID5    = regexp.MustCompile(UUID5Pattern)
 )
 
 // IsHostname returns true when the string is a valid hostname
@@ -99,24 +111,28 @@ func IsHostname(str string) bool {
 	return valid
 }
 
-// IsUUID returns true is the string matches a UUID, upper case is allowed
+// IsUUID returns true is the string matches a UUID (in any version, including v6 and v7), upper case is allowed
 func IsUUID(str string) bool {
-	return rxUUID.MatchString(str)
+	_, err := uuid.Parse(str)
+	return err == nil
 }
 
-// IsUUID3 returns true is the string matches a UUID, upper case is allowed
+// IsUUID3 returns true is the string matches a UUID v3, upper case is allowed
 func IsUUID3(str string) bool {
-	return rxUUID3.MatchString(str)
+	id, err := uuid.Parse(str)
+	return err == nil && id.Version() == uuid.Version(3)
 }
 
-// IsUUID4 returns true is the string matches a UUID, upper case is allowed
+// IsUUID4 returns true is the string matches a UUID v4, upper case is allowed
 func IsUUID4(str string) bool {
-	return rxUUID4.MatchString(str)
+	id, err := uuid.Parse(str)
+	return err == nil && id.Version() == uuid.Version(4)
 }
 
-// IsUUID5 returns true is the string matches a UUID, upper case is allowed
+// IsUUID5 returns true is the string matches a UUID v5, upper case is allowed
 func IsUUID5(str string) bool {
-	return rxUUID5.MatchString(str)
+	id, err := uuid.Parse(str)
+	return err == nil && id.Version() == uuid.Version(5)
 }
 
 // IsEmail validates an email address.
@@ -240,11 +256,14 @@ func (b *Base64) UnmarshalText(data []byte) error { // validation is performed l
 func (b *Base64) Scan(raw interface{}) error {
 	switch v := raw.(type) {
 	case []byte:
-		if err := b.UnmarshalText(v); err != nil {
+		dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(v)))
+		n, err := base64.StdEncoding.Decode(dbuf, v)
+		if err != nil {
 			return err
 		}
+		*b = dbuf[:n]
 	case string:
-		vv, err := base64.URLEncoding.DecodeString(v)
+		vv, err := base64.StdEncoding.DecodeString(v)
 		if err != nil {
 			return err
 		}
@@ -262,7 +281,7 @@ func (b Base64) Value() (driver.Value, error) {
 }
 
 func (b Base64) String() string {
-	return base64.URLEncoding.EncodeToString([]byte(b))
+	return base64.StdEncoding.EncodeToString([]byte(b))
 }
 
 // MarshalJSON returns the Base64 as JSON
@@ -276,7 +295,7 @@ func (b *Base64) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &b64str); err != nil {
 		return err
 	}
-	vb, err := base64.URLEncoding.DecodeString(b64str)
+	vb, err := base64.StdEncoding.DecodeString(b64str)
 	if err != nil {
 		return err
 	}
@@ -297,7 +316,7 @@ func (b *Base64) UnmarshalBSON(data []byte) error {
 	}
 
 	if bd, ok := m["data"].(string); ok {
-		vb, err := base64.URLEncoding.DecodeString(bd)
+		vb, err := base64.StdEncoding.DecodeString(bd)
 		if err != nil {
 			return err
 		}

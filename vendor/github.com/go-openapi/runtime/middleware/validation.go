@@ -20,8 +20,9 @@ import (
 	"strings"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/swag"
+
+	"github.com/go-openapi/runtime"
 )
 
 type validation struct {
@@ -34,7 +35,6 @@ type validation struct {
 
 // ContentType validates the content type of a request
 func validateContentType(allowed []string, actual string) error {
-	debugLog("validating content type for %q against [%s]", actual, strings.Join(allowed, ", "))
 	if len(allowed) == 0 {
 		return nil
 	}
@@ -56,13 +56,13 @@ func validateContentType(allowed []string, actual string) error {
 }
 
 func validateRequest(ctx *Context, request *http.Request, route *MatchedRoute) *validation {
-	debugLog("validating request %s %s", request.Method, request.URL.EscapedPath())
 	validate := &validation{
 		context: ctx,
 		request: request,
 		route:   route,
 		bound:   make(map[string]interface{}),
 	}
+	validate.debugLogf("validating request %s %s", request.Method, request.URL.EscapedPath())
 
 	validate.contentType()
 	if len(validate.result) == 0 {
@@ -75,8 +75,12 @@ func validateRequest(ctx *Context, request *http.Request, route *MatchedRoute) *
 	return validate
 }
 
+func (v *validation) debugLogf(format string, args ...any) {
+	v.context.debugLogf(format, args...)
+}
+
 func (v *validation) parameters() {
-	debugLog("validating request parameters for %s %s", v.request.Method, v.request.URL.EscapedPath())
+	v.debugLogf("validating request parameters for %s %s", v.request.Method, v.request.URL.EscapedPath())
 	if result := v.route.Binder.Bind(v.request, v.route.Params, v.route.Consumer, v.bound); result != nil {
 		if result.Error() == "validation failure list" {
 			for _, e := range result.(*errors.Validation).Value.([]interface{}) {
@@ -90,7 +94,7 @@ func (v *validation) parameters() {
 
 func (v *validation) contentType() {
 	if len(v.result) == 0 && runtime.HasBody(v.request) {
-		debugLog("validating body content type for %s %s", v.request.Method, v.request.URL.EscapedPath())
+		v.debugLogf("validating body content type for %s %s", v.request.Method, v.request.URL.EscapedPath())
 		ct, _, req, err := v.context.ContentType(v.request)
 		if err != nil {
 			v.result = append(v.result, err)
@@ -99,6 +103,7 @@ func (v *validation) contentType() {
 		}
 
 		if len(v.result) == 0 {
+			v.debugLogf("validating content type for %q against [%s]", ct, strings.Join(v.route.Consumes, ", "))
 			if err := validateContentType(v.route.Consumes, ct); err != nil {
 				v.result = append(v.result, err)
 			}
@@ -115,7 +120,10 @@ func (v *validation) contentType() {
 }
 
 func (v *validation) responseFormat() {
-	if str, rCtx := v.context.ResponseFormat(v.request, v.route.Produces); str == "" && runtime.HasBody(v.request) {
+	// if the route provides values for Produces and no format could be identify then return an error.
+	// if the route does not specify values for Produces then treat request as valid since the API designer
+	// choose not to specify the format for responses.
+	if str, rCtx := v.context.ResponseFormat(v.request, v.route.Produces); str == "" && len(v.route.Produces) > 0 {
 		v.request = rCtx
 		v.result = append(v.result, errors.InvalidResponseFormat(v.request.Header.Get(runtime.HeaderAccept), v.route.Produces))
 	}

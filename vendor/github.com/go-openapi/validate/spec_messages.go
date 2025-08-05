@@ -163,6 +163,9 @@ const (
 	// PathParamGarbledWarning ...
 	PathParamGarbledWarning = "in path %q, param %q contains {,} or white space. Albeit not stricly illegal, this is probably no what you want"
 
+	// ParamValidationTypeMismatch indicates that parameter has validation which does not match its type
+	ParamValidationTypeMismatch = "validation keywords of parameter %q in path %q don't match its type %s"
+
 	// PathStrippedParamGarbledWarning ...
 	PathStrippedParamGarbledWarning = "path stripped from path parameters %s contains {,} or white space. This is probably no what you want."
 
@@ -184,6 +187,8 @@ const (
 
 	// UnusedResponseWarning ...
 	UnusedResponseWarning = "response %q is not used anywhere"
+
+	InvalidObject = "expected an object in %q.%s"
 )
 
 // Additional error codes
@@ -341,11 +346,18 @@ func invalidParameterDefinitionMsg(path, method, operationID string) errors.Erro
 func invalidParameterDefinitionAsSchemaMsg(path, method, operationID string) errors.Error {
 	return errors.New(errors.CompositeErrorCode, InvalidParameterDefinitionAsSchemaError, path, method, operationID)
 }
+func parameterValidationTypeMismatchMsg(param, path, typ string) errors.Error {
+	return errors.New(errors.CompositeErrorCode, ParamValidationTypeMismatch, param, path, typ)
+}
+func invalidObjectMsg(path, in string) errors.Error {
+	return errors.New(errors.CompositeErrorCode, InvalidObject, path, in)
+}
 
 // disabled
-//func invalidResponseDefinitionAsSchemaMsg(path, method string) errors.Error {
-//	return errors.New(errors.CompositeErrorCode, InvalidResponseDefinitionAsSchemaError, path, method)
-//}
+//
+//	func invalidResponseDefinitionAsSchemaMsg(path, method string) errors.Error {
+//		return errors.New(errors.CompositeErrorCode, InvalidResponseDefinitionAsSchemaError, path, method)
+//	}
 func someParametersBrokenMsg(path, method, operationID string) errors.Error {
 	return errors.New(errors.CompositeErrorCode, SomeParametersBrokenError, path, method, operationID)
 }

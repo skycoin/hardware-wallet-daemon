@@ -24,14 +24,20 @@ import (
 	"strconv"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+
+	"github.com/go-openapi/runtime"
 )
 
 const defaultMaxMemory = 32 << 20
+
+const (
+	typeString = "string"
+	typeArray  = "array"
+)
 
 var textUnmarshalType = reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
 
@@ -65,7 +71,7 @@ func (p *untypedParamBinder) typeForSchema(tpe, format string, items *spec.Items
 	case "boolean":
 		return reflect.TypeOf(true)
 
-	case "string":
+	case typeString:
 		if tt, ok := p.formats.GetType(format); ok {
 			return tt
 		}
@@ -93,7 +99,7 @@ func (p *untypedParamBinder) typeForSchema(tpe, format string, items *spec.Items
 			return reflect.TypeOf(float64(0))
 		}
 
-	case "array":
+	case typeArray:
 		if items == nil {
 			return nil
 		}
@@ -118,7 +124,7 @@ func (p *untypedParamBinder) allowsMulti() bool {
 
 func (p *untypedParamBinder) readValue(values runtime.Gettable, target reflect.Value) ([]string, bool, bool, error) {
 	name, in, cf, tpe := p.parameter.Name, p.parameter.In, p.parameter.CollectionFormat, p.parameter.Type
-	if tpe == "array" {
+	if tpe == typeArray {
 		if cf == "multi" {
 			if !p.allowsMulti() {
 				return nil, false, false, errors.InvalidCollectionFormat(name, in, cf)
@@ -205,8 +211,13 @@ func (p *untypedParamBinder) Bind(request *http.Request, routeParams RouteParams
 		if p.parameter.Type == "file" {
 			file, header, ffErr := request.FormFile(p.parameter.Name)
 			if ffErr != nil {
-				return errors.NewParseError(p.Name, p.parameter.In, "", ffErr)
+				if p.parameter.Required {
+					return errors.NewParseError(p.Name, p.parameter.In, "", ffErr)
+				}
+
+				return nil
 			}
+
 			target.Set(reflect.ValueOf(runtime.File{Data: file, Header: header}))
 			return nil
 		}
@@ -258,7 +269,7 @@ func (p *untypedParamBinder) Bind(request *http.Request, routeParams RouteParams
 }
 
 func (p *untypedParamBinder) bindValue(data []string, hasKey bool, target reflect.Value) error {
-	if p.parameter.Type == "array" {
+	if p.parameter.Type == typeArray {
 		return p.setSliceFieldValue(target, p.parameter.Default, data, hasKey)
 	}
 	var d string
@@ -268,14 +279,14 @@ func (p *untypedParamBinder) bindValue(data []string, hasKey bool, target reflec
 	return p.setFieldValue(target, p.parameter.Default, d, hasKey)
 }
 
-func (p *untypedParamBinder) setFieldValue(target reflect.Value, defaultValue interface{}, data string, hasKey bool) error {
+func (p *untypedParamBinder) setFieldValue(target reflect.Value, defaultValue interface{}, data string, hasKey bool) error { //nolint:gocyclo
 	tpe := p.parameter.Type
 	if p.parameter.Format != "" {
 		tpe = p.parameter.Format
 	}
 
 	if (!hasKey || (!p.parameter.AllowEmptyValue && data == "")) && p.parameter.Required && p.parameter.Default == nil {
-		return errors.Required(p.Name, p.parameter.In)
+		return errors.Required(p.Name, p.parameter.In, data)
 	}
 
 	ok, err := p.tryUnmarshaler(target, defaultValue, data)
@@ -312,7 +323,7 @@ func (p *untypedParamBinder) setFieldValue(target reflect.Value, defaultValue in
 		return nil
 	}
 
-	switch target.Kind() {
+	switch target.Kind() { //nolint:exhaustive // we want to check only types that map from a swagger parameter
 	case reflect.Bool:
 		if data == "" {
 			if target.CanSet() {
@@ -450,7 +461,7 @@ func (p *untypedParamBinder) readFormattedSliceFieldValue(data string, target re
 func (p *untypedParamBinder) setSliceFieldValue(target reflect.Value, defaultValue interface{}, data []string, hasKey bool) error {
 	sz := len(data)
 	if (!hasKey || (!p.parameter.AllowEmptyValue && (sz == 0 || (sz == 1 && data[0] == "")))) && p.parameter.Required && defaultValue == nil {
-		return errors.Required(p.Name, p.parameter.In)
+		return errors.Required(p.Name, p.parameter.In, data)
 	}
 
 	defVal := reflect.Zero(target.Type())
