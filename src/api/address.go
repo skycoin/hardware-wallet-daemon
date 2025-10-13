@@ -83,7 +83,7 @@ func generateAddresses(gateway Gatewayer) http.HandlerFunc {
 		ctx := r.Context()
 
 		go func() {
-			msg, err = gateway.AddressGen(uint32(req.AddressN), uint32(req.StartIndex), req.ConfirmAddress)
+			msg, err = gateway.AddressGen(uint32(req.AddressN), uint32(req.StartIndex), req.ConfirmAddress, skyWallet.SkycoinCoinType)
 			if err != nil {
 				errCH <- 1
 				return

@@ -1,15 +1,15 @@
 // +build testrunmain
 
-// This file allows us to run the entire program with test coverage enabled, useful for integration tests
 package main
 
-import "testing"
-
-func init() {
-	// Disable flag.Parse because go's test runner calls it instead
-	parseFlags = false
-}
+import (
+	"os"
+	"testing"
+)
 
 func TestRunMain(t *testing.T) {
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	os.Args = []string{"cmd"}
 	main()
 }

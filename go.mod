@@ -16,6 +16,7 @@ require (
 	github.com/skycoin/hardware-wallet-go v1.1.1-0.20251013163743-d729d92e14c3
 	github.com/skycoin/hardware-wallet-protob v0.0.0-20250805154629-410561e1bc2f
 	github.com/skycoin/skycoin v0.28.1-0.20251012182647-a1a88ea0df8f
+	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -43,6 +44,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/gousb v1.1.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	go.mongodb.org/mongo-driver v1.17.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
