@@ -14,9 +14,13 @@
 
 package errors
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
-// ParseError respresents a parsing error
+// ParseError represents a parsing error
 type ParseError struct {
 	code    int32
 	Name    string
@@ -24,6 +28,24 @@ type ParseError struct {
 	Value   string
 	Reason  error
 	message string
+}
+
+// NewParseError creates a new parse error
+func NewParseError(name, in, value string, reason error) *ParseError {
+	var msg string
+	if in == "" {
+		msg = fmt.Sprintf(parseErrorTemplContentNoIn, name, value, reason)
+	} else {
+		msg = fmt.Sprintf(parseErrorTemplContent, name, in, value, reason)
+	}
+	return &ParseError{
+		code:    http.StatusBadRequest,
+		Name:    name,
+		In:      in,
+		Value:   value,
+		Reason:  reason,
+		message: msg,
+	}
 }
 
 func (e *ParseError) Error() string {
@@ -35,25 +57,23 @@ func (e *ParseError) Code() int32 {
 	return e.code
 }
 
+// MarshalJSON implements the JSON encoding interface
+func (e ParseError) MarshalJSON() ([]byte, error) {
+	var reason string
+	if e.Reason != nil {
+		reason = e.Reason.Error()
+	}
+	return json.Marshal(map[string]interface{}{
+		"code":    e.code,
+		"message": e.message,
+		"in":      e.In,
+		"name":    e.Name,
+		"value":   e.Value,
+		"reason":  reason,
+	})
+}
+
 const (
 	parseErrorTemplContent     = `parsing %s %s from %q failed, because %s`
 	parseErrorTemplContentNoIn = `parsing %s from %q failed, because %s`
 )
-
-// NewParseError creates a new parse error
-func NewParseError(name, in, value string, reason error) *ParseError {
-	var msg string
-	if in == "" {
-		msg = fmt.Sprintf(parseErrorTemplContentNoIn, name, value, reason)
-	} else {
-		msg = fmt.Sprintf(parseErrorTemplContent, name, in, value, reason)
-	}
-	return &ParseError{
-		code:    400,
-		Name:    name,
-		In:      in,
-		Value:   value,
-		Reason:  reason,
-		message: msg,
-	}
-}

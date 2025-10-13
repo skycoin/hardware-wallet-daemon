@@ -2,9 +2,7 @@ package daemon
 
 import (
 	"errors"
-	"flag"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/skycoin/hardware-wallet-daemon/src/api"
@@ -12,10 +10,6 @@ import (
 	skyWallet "github.com/skycoin/hardware-wallet-go/src/skywallet"
 
 	"github.com/skycoin/skycoin/src/util/file"
-)
-
-var (
-	help = false
 )
 
 // Config records the daemon and build configuration
@@ -94,11 +88,6 @@ func NewAppConfig(port int, datadir string) AppConfig {
 }
 
 func (c *Config) postProcess() error {
-	if help {
-		flag.Usage()
-		os.Exit(0)
-	}
-
 	var err error
 	home := file.UserHome()
 	c.App.DataDirectory, err = file.InitDataDir(replaceHome(c.App.DataDirectory, home))
@@ -117,29 +106,6 @@ func (c *Config) postProcess() error {
 	}
 
 	return nil
-}
-
-// RegisterFlags binds CLI flags to config values
-func (c *AppConfig) RegisterFlags() {
-	flag.BoolVar(&help, "help", false, "Show help")
-	flag.IntVar(&c.WebInterfacePort, "web-interface-port", c.WebInterfacePort, "port to serve web interface on")
-	flag.StringVar(&c.WebInterfaceAddr, "web-interface-addr", c.WebInterfaceAddr, "addr to serve web interface on")
-	flag.BoolVar(&c.EnableCSRF, "enable-csrf", c.EnableCSRF, "enable CSRF check")
-	flag.BoolVar(&c.DisableHeaderCheck, "disable-header-check", c.DisableHeaderCheck, "disables the host, origin and referer header checks.")
-	flag.StringVar(&c.HostWhitelist, "host-whitelist", c.HostWhitelist, "Hostnames to whitelist in the Host header check. Only applies when the web interface is bound to localhost.")
-
-	flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog, "Add terminal colors to log output")
-	flag.StringVar(&c.LogLevel, "log-level", c.LogLevel, "Choices are: debug, info, warn, error, fatal, panic")
-	flag.BoolVar(&c.LogToFile, "logtofile", c.LogToFile, "log to file")
-
-	flag.BoolVar(&c.ProfileCPU, "profile-cpu", c.ProfileCPU, "enable cpu profiling")
-	flag.StringVar(&c.ProfileCPUFile, "profile-cpu-file", c.ProfileCPUFile, "where to write the cpu profile file")
-	flag.BoolVar(&c.HTTPProf, "http-prof", c.HTTPProf, "run the HTTP profiling interface")
-	flag.StringVar(&c.HTTPProfHost, "http-prof-host", c.HTTPProfHost, "hostname to bind the HTTP profiling interface to")
-
-	flag.StringVar(&c.DataDirectory, "data-dir", c.DataDirectory, "directory to store app data (defaults to ~/.skycoin)")
-
-	flag.StringVar(&c.DaemonMode, "daemon-mode", c.DaemonMode, "Choices are: USB or EMULATOR")
 }
 
 func panicIfError(err error, msg string, args ...interface{}) { // nolint: unparam

@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/go-openapi/jsonpointer"
-	"github.com/go-openapi/swag"
+	"github.com/go-openapi/swag/jsonutils"
 )
 
 const (
@@ -51,22 +51,6 @@ func (s *SimpleSchema) ItemsTypeName() string {
 		return ""
 	}
 	return s.Items.TypeName()
-}
-
-// CommonValidations describe common JSON-schema validations
-type CommonValidations struct {
-	Maximum          *float64      `json:"maximum,omitempty"`
-	ExclusiveMaximum bool          `json:"exclusiveMaximum,omitempty"`
-	Minimum          *float64      `json:"minimum,omitempty"`
-	ExclusiveMinimum bool          `json:"exclusiveMinimum,omitempty"`
-	MaxLength        *int64        `json:"maxLength,omitempty"`
-	MinLength        *int64        `json:"minLength,omitempty"`
-	Pattern          string        `json:"pattern,omitempty"`
-	MaxItems         *int64        `json:"maxItems,omitempty"`
-	MinItems         *int64        `json:"minItems,omitempty"`
-	UniqueItems      bool          `json:"uniqueItems,omitempty"`
-	MultipleOf       *float64      `json:"multipleOf,omitempty"`
-	Enum             []interface{} `json:"enum,omitempty"`
 }
 
 // Items a limited subset of JSON-Schema's items object.
@@ -113,14 +97,14 @@ func (i *Items) WithDefault(defaultValue interface{}) *Items {
 }
 
 // WithMaxLength sets a max length value
-func (i *Items) WithMaxLength(max int64) *Items {
-	i.MaxLength = &max
+func (i *Items) WithMaxLength(maximum int64) *Items {
+	i.MaxLength = &maximum
 	return i
 }
 
 // WithMinLength sets a min length value
-func (i *Items) WithMinLength(min int64) *Items {
-	i.MinLength = &min
+func (i *Items) WithMinLength(minimum int64) *Items {
+	i.MinLength = &minimum
 	return i
 }
 
@@ -137,15 +121,15 @@ func (i *Items) WithMultipleOf(number float64) *Items {
 }
 
 // WithMaximum sets a maximum number value
-func (i *Items) WithMaximum(max float64, exclusive bool) *Items {
-	i.Maximum = &max
+func (i *Items) WithMaximum(maximum float64, exclusive bool) *Items {
+	i.Maximum = &maximum
 	i.ExclusiveMaximum = exclusive
 	return i
 }
 
 // WithMinimum sets a minimum number value
-func (i *Items) WithMinimum(min float64, exclusive bool) *Items {
-	i.Minimum = &min
+func (i *Items) WithMinimum(minimum float64, exclusive bool) *Items {
+	i.Minimum = &minimum
 	i.ExclusiveMinimum = exclusive
 	return i
 }
@@ -177,6 +161,12 @@ func (i *Items) UniqueValues() *Items {
 // AllowDuplicates this array can have duplicates
 func (i *Items) AllowDuplicates() *Items {
 	i.UniqueItems = false
+	return i
+}
+
+// WithValidations is a fluent method to set Items validations
+func (i *Items) WithValidations(val CommonValidations) *Items {
+	i.SetValidations(SchemaValidations{CommonValidations: val})
 	return i
 }
 
@@ -223,7 +213,7 @@ func (i Items) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return swag.ConcatJSON(b4, b3, b1, b2), nil
+	return jsonutils.ConcatJSON(b4, b3, b1, b2), nil
 }
 
 // JSONLookup look up a value by the json property name

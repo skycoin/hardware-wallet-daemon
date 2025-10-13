@@ -18,12 +18,12 @@ import (
 	"encoding/json"
 
 	"github.com/go-openapi/jsonpointer"
-	"github.com/go-openapi/swag"
+	"github.com/go-openapi/swag/jsonutils"
 )
 
 // ResponseProps properties specific to a response
 type ResponseProps struct {
-	Description string                 `json:"description,omitempty"`
+	Description string                 `json:"description"`
 	Schema      *Schema                `json:"schema,omitempty"`
 	Headers     map[string]Header      `json:"headers,omitempty"`
 	Examples    map[string]interface{} `json:"examples,omitempty"`
@@ -36,6 +36,18 @@ type Response struct {
 	Refable
 	ResponseProps
 	VendorExtensible
+}
+
+// NewResponse creates a new response instance
+func NewResponse() *Response {
+	return new(Response)
+}
+
+// ResponseRef creates a response as a json reference
+func ResponseRef(url string) *Response {
+	resp := NewResponse()
+	resp.Ref = MustCreateRef(url)
+	return resp
 }
 
 // JSONLookup look up a value by the json property name
@@ -63,10 +75,31 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON converts this items object to JSON
 func (r Response) MarshalJSON() ([]byte, error) {
-	b1, err := json.Marshal(r.ResponseProps)
+	var (
+		b1  []byte
+		err error
+	)
+
+	if r.Ref.String() == "" {
+		// when there is no $ref, empty description is rendered as an empty string
+		b1, err = json.Marshal(r.ResponseProps)
+	} else {
+		// when there is $ref inside the schema, description should be omitempty-ied
+		b1, err = json.Marshal(struct {
+			Description string                 `json:"description,omitempty"`
+			Schema      *Schema                `json:"schema,omitempty"`
+			Headers     map[string]Header      `json:"headers,omitempty"`
+			Examples    map[string]interface{} `json:"examples,omitempty"`
+		}{
+			Description: r.Description,
+			Schema:      r.Schema,
+			Examples:    r.Examples,
+		})
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	b2, err := json.Marshal(r.Refable)
 	if err != nil {
 		return nil, err
@@ -75,19 +108,7 @@ func (r Response) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return swag.ConcatJSON(b1, b2, b3), nil
-}
-
-// NewResponse creates a new response instance
-func NewResponse() *Response {
-	return new(Response)
-}
-
-// ResponseRef creates a response as a json reference
-func ResponseRef(url string) *Response {
-	resp := NewResponse()
-	resp.Ref = MustCreateRef(url)
-	return resp
+	return jsonutils.ConcatJSON(b1, b2, b3), nil
 }
 
 // WithDescription sets the description on this response, allows for chaining

@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/errors"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
 // Default is the default formats registry
@@ -49,33 +49,13 @@ type Registry interface {
 	GetType(string) (reflect.Type, bool)
 	ContainsName(string) bool
 	Validates(string, string) bool
-	Parse(string, string) (interface{}, error)
+	Parse(string, string) (any, error)
 	MapStructureHookFunc() mapstructure.DecodeHookFunc
-}
-
-type knownFormat struct {
-	Name      string
-	OrigName  string
-	Type      reflect.Type
-	Validator Validator
-}
-
-// NameNormalizer is a function that normalizes a format name.
-type NameNormalizer func(string) string
-
-// DefaultNameNormalizer removes all dashes
-func DefaultNameNormalizer(name string) string {
-	return strings.Replace(name, "-", "", -1)
-}
-
-type defaultFormats struct {
-	sync.Mutex
-	data          []knownFormat
-	normalizeName NameNormalizer
 }
 
 // NewFormats creates a new formats registry seeded with the values from the default
 func NewFormats() Registry {
+	//nolint:forcetypeassert
 	return NewSeededFormats(Default.(*defaultFormats).data, nil)
 }
 
@@ -92,74 +72,107 @@ func NewSeededFormats(seeds []knownFormat, normalizer NameNormalizer) Registry {
 	}
 }
 
+type knownFormat struct {
+	Name      string
+	OrigName  string
+	Type      reflect.Type
+	Validator Validator
+}
+
+// NameNormalizer is a function that normalizes a format name.
+type NameNormalizer func(string) string
+
+// DefaultNameNormalizer removes all dashes
+func DefaultNameNormalizer(name string) string {
+	return strings.ReplaceAll(name, "-", "")
+}
+
+type defaultFormats struct {
+	sync.Mutex
+
+	data          []knownFormat
+	normalizeName NameNormalizer
+}
+
 // MapStructureHookFunc is a decode hook function for mapstructure
 func (f *defaultFormats) MapStructureHookFunc() mapstructure.DecodeHookFunc {
-	return func(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
+	return func(from reflect.Type, to reflect.Type, obj any) (any, error) {
 		if from.Kind() != reflect.String {
-			return data, nil
+			return obj, nil
 		}
+		data, ok := obj.(string)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast %+v to string: %w", obj, ErrFormat)
+		}
+
 		for _, v := range f.data {
 			tpe, _ := f.GetType(v.Name)
 			if to == tpe {
 				switch v.Name {
 				case "date":
-					d, err := time.Parse(RFC3339FullDate, data.(string))
+					d, err := time.ParseInLocation(RFC3339FullDate, data, DefaultTimeLocation)
 					if err != nil {
 						return nil, err
 					}
 					return Date(d), nil
 				case "datetime":
-					input := data.(string)
+					input := data
 					if len(input) == 0 {
-						return nil, fmt.Errorf("empty string is an invalid datetime format")
+						return nil, fmt.Errorf("empty string is an invalid datetime format: %w", ErrFormat)
 					}
 					return ParseDateTime(input)
 				case "duration":
-					dur, err := ParseDuration(data.(string))
+					dur, err := ParseDuration(data)
 					if err != nil {
 						return nil, err
 					}
 					return Duration(dur), nil
 				case "uri":
-					return URI(data.(string)), nil
+					return URI(data), nil
 				case "email":
-					return Email(data.(string)), nil
+					return Email(data), nil
 				case "uuid":
-					return UUID(data.(string)), nil
+					return UUID(data), nil
 				case "uuid3":
-					return UUID3(data.(string)), nil
+					return UUID3(data), nil
 				case "uuid4":
-					return UUID4(data.(string)), nil
+					return UUID4(data), nil
 				case "uuid5":
-					return UUID5(data.(string)), nil
+					return UUID5(data), nil
 				case "hostname":
-					return Hostname(data.(string)), nil
+					return Hostname(data), nil
 				case "ipv4":
-					return IPv4(data.(string)), nil
+					return IPv4(data), nil
 				case "ipv6":
-					return IPv6(data.(string)), nil
+					return IPv6(data), nil
 				case "cidr":
-					return CIDR(data.(string)), nil
+					return CIDR(data), nil
 				case "mac":
-					return MAC(data.(string)), nil
+					return MAC(data), nil
 				case "isbn":
-					return ISBN(data.(string)), nil
+					return ISBN(data), nil
 				case "isbn10":
-					return ISBN10(data.(string)), nil
+					return ISBN10(data), nil
 				case "isbn13":
-					return ISBN13(data.(string)), nil
+					return ISBN13(data), nil
 				case "creditcard":
-					return CreditCard(data.(string)), nil
+					return CreditCard(data), nil
 				case "ssn":
-					return SSN(data.(string)), nil
+					return SSN(data), nil
 				case "hexcolor":
-					return HexColor(data.(string)), nil
+					return HexColor(data), nil
 				case "rgbcolor":
-					return RGBColor(data.(string)), nil
+					return RGBColor(data), nil
 				case "byte":
-					return Base64(data.(string)), nil
+					return Base64(data), nil
 				case "password":
-					return Password(data.(string)), nil
+					return Password(data), nil
+				case "ulid":
+					ulid, err := ParseULID(data)
+					if err != nil {
+						return nil, err
+					}
+					return ulid, nil
 				default:
 					return nil, errors.InvalidTypeName(v.Name)
 				}
@@ -294,7 +307,7 @@ func (f *defaultFormats) Validates(name, data string) bool {
 // Parse a string into the appropriate format representation type.
 //
 // E.g. parsing a string a "date" will return a Date type.
-func (f *defaultFormats) Parse(name, data string) (interface{}, error) {
+func (f *defaultFormats) Parse(name, data string) (any, error) {
 	f.Lock()
 	defer f.Unlock()
 	nme := f.normalizeName(name)

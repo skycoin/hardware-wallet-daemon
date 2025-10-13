@@ -41,11 +41,35 @@ const (
 	DeviceTypeInvalid
 )
 
+// CoinType type of coin, that will be used: Skycoin, Bitcoin, etc
+type CoinType int32
+
 const (
-	// SkycoinVendorID from https://github.com/skycoin/hardware-wallet/blob/50000f674c56c0cc18eec30d55978b73ed279b2e/tiny-firmware/bootloader/usb.c#L57
+	// InvalidCoinType not valid value
+	InvalidCoinType CoinType = iota + 1
+	// SkycoinCoinType Skycoin coin type
+	SkycoinCoinType
+	// BitcoinCoinType Bitcoin coin type
+	BitcoinCoinType
+)
+
+// CoinTypeFromString returns CoinType from String (i.e. SkycoinCoinType from 'SKY')
+func CoinTypeFromString(ct string) (CoinType, error) {
+	switch ct {
+	case "SKY":
+		return SkycoinCoinType, nil
+	case "BTC":
+		return BitcoinCoinType, nil
+	default:
+		return InvalidCoinType, fmt.Errorf("invalid coin type: %s", ct)
+	}
+}
+
+const (
+	// SkycoinVendorID from https://github.com/SkycoinProject/hardware-wallet/blob/50000f674c56c0cc18eec30d55978b73ed279b2e/tiny-firmware/bootloader/usb.c#L57
 	SkycoinVendorID = 0x313A
 
-	// SkycoinHwProductID from https://github.com/skycoin/hardware-wallet/blob/50000f674c56c0cc18eec30d55978b73ed279b2e/tiny-firmware/bootloader/usb.c#L58
+	// SkycoinHwProductID from https://github.com/SkycoinProject/hardware-wallet/blob/50000f674c56c0cc18eec30d55978b73ed279b2e/tiny-firmware/bootloader/usb.c#L58
 	SkycoinHwProductID = 0x0001
 
 	// EmulatorPort is the emulator udp port

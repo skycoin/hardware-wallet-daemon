@@ -22,7 +22,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/go-openapi/swag"
+	"github.com/go-openapi/swag/jsonutils"
 )
 
 // TextConsumer creates a new text consumer
@@ -41,7 +41,6 @@ func TextConsumer() Consumer {
 
 		// If the buffer is empty, no need to unmarshal it, which causes a panic.
 		if len(b) == 0 {
-			data = ""
 			return nil
 		}
 
@@ -100,7 +99,7 @@ func TextProducer() Producer {
 
 		v := reflect.Indirect(reflect.ValueOf(data))
 		if t := v.Type(); t.Kind() == reflect.Struct || t.Kind() == reflect.Slice {
-			b, err := swag.WriteJSON(data)
+			b, err := jsonutils.WriteJSON(data)
 			if err != nil {
 				return err
 			}
