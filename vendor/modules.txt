@@ -68,6 +68,9 @@ github.com/go-openapi/validate
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/proto
+# github.com/google/gousb v1.1.3
+## explicit; go 1.16
+github.com/google/gousb
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
@@ -79,8 +82,8 @@ github.com/josharian/intern
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.1.13
-## explicit; go 1.15
+# github.com/mattn/go-colorable v0.1.14
+## explicit; go 1.18
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
@@ -115,8 +118,8 @@ github.com/shopspring/decimal
 # github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/skycoin/hardware-wallet-go v1.1.1-0.20250805153055-240b47e7b7f3
-## explicit; go 1.24.5
+# github.com/skycoin/hardware-wallet-go v1.1.1-0.20251013163743-d729d92e14c3
+## explicit; go 1.25.1
 github.com/skycoin/hardware-wallet-go/src/skywallet
 github.com/skycoin/hardware-wallet-go/src/skywallet/usb
 github.com/skycoin/hardware-wallet-go/src/skywallet/wire
@@ -126,8 +129,8 @@ github.com/skycoin/hardware-wallet-go/src/usb/lowlevel/libusb
 ## explicit; go 1.24.5
 github.com/skycoin/hardware-wallet-protob/go
 github.com/skycoin/hardware-wallet-protob/go/google/protobuf
-# github.com/skycoin/skycoin v0.28.1-0.20241105130348-39b49a2d0a7f
-## explicit; go 1.22.0
+# github.com/skycoin/skycoin v0.28.1-0.20251012182647-a1a88ea0df8f
+## explicit; go 1.25.1
 github.com/skycoin/skycoin/src/cipher
 github.com/skycoin/skycoin/src/cipher/base58
 github.com/skycoin/skycoin/src/cipher/bip39
@@ -142,10 +145,10 @@ github.com/skycoin/skycoin/src/util/file
 github.com/skycoin/skycoin/src/util/http
 github.com/skycoin/skycoin/src/util/iputil
 github.com/skycoin/skycoin/src/util/logging
-# github.com/stretchr/objx v0.5.2
+# github.com/stretchr/objx v0.5.3
 ## explicit; go 1.20
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.10.0
+# github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
@@ -182,19 +185,19 @@ go.opentelemetry.io/otel/metric/embedded
 ## explicit; go 1.20
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
-# golang.org/x/crypto v0.28.0
-## explicit; go 1.20
+# golang.org/x/crypto v0.43.0
+## explicit; go 1.24.0
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/sync v0.6.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.26.0
-## explicit; go 1.18
+# golang.org/x/sys v0.37.0
+## explicit; go 1.24.0
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.25.0
-## explicit; go 1.18
+# golang.org/x/term v0.36.0
+## explicit; go 1.24.0
 golang.org/x/term
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
