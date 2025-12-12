@@ -106,8 +106,8 @@ github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp
 github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
-github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212174253-dcb64c2b54b4 h1:1OYynvc7i4y6Ka50WbXueyZJBVWne46ssqOX61ChXyw=
-github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212174253-dcb64c2b54b4/go.mod h1:14oNKhmmsESikFQHVTB/z4bUBMRAW/KCYk341nZidhc=
+github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212175623-4306ea9c2149 h1:27Gc3y6MisMaaXx8PiS52R6SK8cqf0JgIVIWpGM5sKc=
+github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212175623-4306ea9c2149/go.mod h1:B2hn3sax9grHaUZC17OFZjNIB8vtPIUzO8DWNJ9IZ+E=
 github.com/skycoin/hardware-wallet-protob v0.0.0-20250805154629-410561e1bc2f h1:wKpqEhubs7kKtb7nqU4V8zkTxwnnwcB2797elV2z1t8=
 github.com/skycoin/hardware-wallet-protob v0.0.0-20250805154629-410561e1bc2f/go.mod h1:Dq4cqJueacNCZe0qzvcsgEkrka+Zi9MZLRoQDUPeG4k=
 github.com/skycoin/skycoin v0.28.1-0.20251012182647-a1a88ea0df8f h1:mqgIt5WF2m/xHjxX8emKosD52Es3Qufntnmh/kD5TWs=

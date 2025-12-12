@@ -13,7 +13,7 @@ require (
 	github.com/go-openapi/validate v0.25.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/rs/cors v1.11.1
-	github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212174253-dcb64c2b54b4
+	github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212175623-4306ea9c2149
 	github.com/skycoin/hardware-wallet-protob v0.0.0-20250805154629-410561e1bc2f
 	github.com/skycoin/skycoin v0.28.1-0.20251012182647-a1a88ea0df8f
 	github.com/spf13/cobra v1.10.2
@@ -85,7 +85,7 @@ require (
 // To update deps to specific commit hash:
 // 1) Uncomment one of the following lines and substituite version with desired commit hash:
 //replace github.com/skycoin/skycoin => github.com/skycoin/skycoin v0.28.1-0.20251205225511-c088af7bbed1
-//replace github.com/skycoin/hardware-wallet-go => github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212174253-dcb64c2b54b4
+//replace github.com/skycoin/hardware-wallet-go => github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212175623-4306ea9c2149
 //replace github.com/skycoin/hardware-wallet-protob => github.com/skycoin/hardware-wallet-protob v0.0.0-20250805154629-410561e1bc2f
 // 2) Run `go mod tidy && go mod vendor`
 // 3) Copy the populated version string to the correct place in require(...) above - replacing the specified version string
