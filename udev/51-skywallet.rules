@@ -1,0 +1,22 @@
+# Udev rules for Skycoin Hardware Wallet (SkyWallet)
+#
+# This file allows non-root users to access the SkyWallet USB device.
+# Without these rules, you would need to run the hardware-wallet-daemon with sudo.
+#
+# Installation:
+#   sudo cp 51-skywallet.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+#
+# Then unplug and replug your SkyWallet device.
+#
+# For more information, see LINUX-SETUP.md
+
+# Skycoin Hardware Wallet (SkyWallet)
+# Vendor ID: 0x313a (SkycoinFoundation)
+# Product ID: 0x0001 (SKYWALLET)
+SUBSYSTEM=="usb", ATTR{idVendor}=="313a", ATTR{idProduct}=="0001", MODE="0666", TAG+="uaccess"
+
+# Automatically unbind the kernel HID driver to allow userspace access
+# This prevents "bad access [code -3]" errors when using the device
+SUBSYSTEM=="usb", ATTR{idVendor}=="313a", ATTR{idProduct}=="0001", RUN+="/bin/sh -c 'for i in /sys/bus/usb/devices/*:1.0; do if [ -e \"$i/driver\" ]; then echo \"$i\" | sed \"s|.*/||\" > /sys/bus/usb/drivers/usbhid/unbind 2>/dev/null || true; fi; done'"

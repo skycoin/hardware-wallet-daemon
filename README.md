@@ -13,6 +13,7 @@ It uses the go bindings provided by the hardware wallet go [library](https://git
 <!-- MarkdownTOC levels="1,2,3,4,5" autolink="true" bracket="round" -->
 - [Installation](#installation)
 	- [Go 1.10+ Installation and Setup](#go-110-installation-and-setup)
+	- [Linux USB Setup](#linux-usb-setup)
 	- [Run Daemon from the command line](#run-daemon-from-the-command-line)
 		- [Modes](#modes)
 	- [Show Daemon options](#show-daemon-options)
@@ -45,6 +46,26 @@ Hardware Daemon supports go1.10+.
 ### Go 1.10+ Installation and Setup
 
 [Golang 1.10+ Installation/Setup](https://github.com/skycoin/skycoin/blob/develop/INSTALLATION.md)
+
+### Linux USB Setup
+
+**Linux users must configure USB permissions to use the hardware wallet without root privileges.**
+
+See [LINUX-SETUP.md](LINUX-SETUP.md) for detailed instructions on:
+- Installing udev rules for USB device permissions
+- Resolving "libusb: bad access" errors
+- Kernel driver management
+- Troubleshooting common issues
+
+**Quick setup:**
+```sh
+# Install udev rules
+sudo cp udev/51-skywallet.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+# Unplug and replug your device
+```
 
 ## Run Daemon from the command line
 ### Modes
