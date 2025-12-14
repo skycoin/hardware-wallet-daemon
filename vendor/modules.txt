@@ -145,7 +145,7 @@ github.com/shopspring/decimal
 # github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/skycoin/hardware-wallet-go v1.1.1-0.20251212175623-4306ea9c2149
+# github.com/skycoin/hardware-wallet-go v1.1.1-0.20251214205422-17746f44286f
 ## explicit; go 1.25.1
 github.com/skycoin/hardware-wallet-go/src/skywallet
 github.com/skycoin/hardware-wallet-go/src/skywallet/usb
